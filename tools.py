@@ -47,9 +47,6 @@ def _validate_args(name: str, args: dict, schema: dict) -> str | None:
 # Tool implementations
 # ---------------------------------------------------------------------------
 
-BLOCKED_PATTERNS = ["rm -rf /", "sudo ", "mkfs", "> /dev/sd"]
-
-
 def _resolve_safe(path: str) -> Path | str:
     """Resolve a path and verify it stays within WORKING_DIR.
 
@@ -157,10 +154,6 @@ def search_code(*, pattern: str, path: str = ".", file_glob: str = "*") -> str:
 
 def shell_exec(*, command: str, timeout: int = 30) -> str:
     """Execute a shell command and return stdout + stderr."""
-    for blocked in BLOCKED_PATTERNS:
-        if blocked in command:
-            return f"Error: Command blocked for safety (contains '{blocked}')"
-
     try:
         result = subprocess.run(
             command,
