@@ -50,10 +50,23 @@ def _validate_args(name: str, args: dict, schema: dict) -> str | None:
 BLOCKED_PATTERNS = ["rm -rf /", "sudo ", "mkfs", "> /dev/sd"]
 
 
+def _resolve_safe(path: str) -> Path | str:
+    """Resolve a path and verify it stays within WORKING_DIR.
+
+    Returns the resolved Path, or an error string if it escapes.
+    """
+    target = (config.WORKING_DIR / path).resolve()
+    if not target.is_relative_to(config.WORKING_DIR):
+        return f"Error: Path escapes working directory: {path}"
+    return target
+
+
 def read_file(*, path: str) -> str:
     """Read the contents of a file."""
     try:
-        target = (config.WORKING_DIR / path).resolve()
+        target = _resolve_safe(path)
+        if isinstance(target, str):
+            return target
         return target.read_text(encoding="utf-8", errors="replace")
     except FileNotFoundError:
         return f"Error: File not found: {path}"
@@ -66,7 +79,9 @@ def read_file(*, path: str) -> str:
 def write_file(*, path: str, content: str) -> str:
     """Write content to a file, creating parent directories if needed."""
     try:
-        target = (config.WORKING_DIR / path).resolve()
+        target = _resolve_safe(path)
+        if isinstance(target, str):
+            return target
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content, encoding="utf-8")
         return f"Wrote {len(content.encode('utf-8'))} bytes to {path}"
@@ -77,7 +92,9 @@ def write_file(*, path: str, content: str) -> str:
 def list_directory(*, path: str = ".") -> str:
     """List files and directories at the given path."""
     try:
-        target = (config.WORKING_DIR / path).resolve()
+        target = _resolve_safe(path)
+        if isinstance(target, str):
+            return target
         if not target.is_dir():
             return f"Error: Not a directory: {path}"
         entries = sorted(target.iterdir())
@@ -97,7 +114,9 @@ def search_code(*, pattern: str, path: str = ".", file_glob: str = "*") -> str:
     except re.error as exc:
         return f"Error: Invalid regex pattern: {exc}"
 
-    target = (config.WORKING_DIR / path).resolve()
+    target = _resolve_safe(path)
+    if isinstance(target, str):
+        return target
     if not target.exists():
         return f"Error: Path not found: {path}"
 

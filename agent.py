@@ -58,6 +58,7 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
         try:
             response = client.chat_completion(history, tool_definitions)
         except RuntimeError as exc:
+            history.pop()  # remove the user message to keep history valid
             error_msg = f"API error: {exc}"
             print(f"\n❌ {error_msg}\n")
             return error_msg
@@ -67,48 +68,49 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
         message = choice["message"]
         finish_reason = choice.get("finish_reason", "")
 
-        # Case 1: model produced a final text response
-        if finish_reason == "stop" or not message.get("tool_calls"):
-            content = message.get("content", "")
-            history.append({"role": "assistant", "content": content})
-            return content
-
-        # Case 2: model wants to call tools
-        # Append the assistant message with tool_calls to history
-        assistant_msg = {"role": "assistant", "content": message.get("content")}
+        # Case 1: model wants to call tools (check this first — some providers
+        # may return tool_calls alongside finish_reason="stop")
         if message.get("tool_calls"):
+            # Append the assistant message with tool_calls to history
+            assistant_msg = {"role": "assistant", "content": message.get("content")}
             assistant_msg["tool_calls"] = message["tool_calls"]
-        history.append(assistant_msg)
+            history.append(assistant_msg)
 
-        # Execute each tool call
-        for tool_call in message["tool_calls"]:
-            call_id = tool_call["id"]
-            func = tool_call["function"]
-            tool_name = func["name"]
+            # Execute each tool call
+            for tool_call in message["tool_calls"]:
+                call_id = tool_call["id"]
+                func = tool_call["function"]
+                tool_name = func["name"]
 
-            # Parse arguments
-            try:
-                arguments = json.loads(func["arguments"]) if func["arguments"] else {}
-            except json.JSONDecodeError as exc:
-                result = f"Error: Could not parse arguments as JSON: {exc}\nRaw: {func['arguments']}"
-                _log_tool_call(tool_name, {}, result)
-                history.append({"role": "tool", "tool_call_id": call_id, "content": result})
-                continue
-
-            # Check confirmation requirement
-            if tool_name in tools.TOOLS and tools.TOOLS[tool_name]["requires_confirmation"]:
-                if not _confirm_tool(tool_name, arguments):
-                    result = "Tool execution denied by user."
-                    _log_tool_call(tool_name, arguments, result)
+                # Parse arguments
+                try:
+                    arguments = json.loads(func["arguments"]) if func["arguments"] else {}
+                except json.JSONDecodeError as exc:
+                    result = f"Error: Could not parse arguments as JSON: {exc}\nRaw: {func['arguments']}"
+                    _log_tool_call(tool_name, {}, result)
                     history.append({"role": "tool", "tool_call_id": call_id, "content": result})
                     continue
 
-            # Execute the tool
-            result = tools.execute_tool(tool_name, arguments)
-            _log_tool_call(tool_name, arguments, result)
-            history.append({"role": "tool", "tool_call_id": call_id, "content": result})
+                # Check confirmation requirement
+                if tool_name in tools.TOOLS and tools.TOOLS[tool_name]["requires_confirmation"]:
+                    if not _confirm_tool(tool_name, arguments):
+                        result = "Tool execution denied by user."
+                        _log_tool_call(tool_name, arguments, result)
+                        history.append({"role": "tool", "tool_call_id": call_id, "content": result})
+                        continue
 
-        iteration += 1
+                # Execute the tool
+                result = tools.execute_tool(tool_name, arguments)
+                _log_tool_call(tool_name, arguments, result)
+                history.append({"role": "tool", "tool_call_id": call_id, "content": result})
+
+            iteration += 1
+            continue
+
+        # Case 2: model produced a final text response (no tool_calls)
+        content = message.get("content", "")
+        history.append({"role": "assistant", "content": content})
+        return content
 
     # Hit the iteration limit
     limit_msg = (

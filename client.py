@@ -67,7 +67,10 @@ def chat_completion(messages: list[dict], tools: list[dict]) -> dict:
             )
 
         if resp.status_code == 429:
-            retry_after = int(resp.headers.get("Retry-After", "5"))
+            try:
+                retry_after = int(resp.headers.get("Retry-After", "5"))
+            except (ValueError, TypeError):
+                retry_after = 5
             if attempt < max_retries:
                 print(f"│ Rate limited (429). Waiting {retry_after}s...")
                 time.sleep(retry_after)
