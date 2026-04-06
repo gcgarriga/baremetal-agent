@@ -96,6 +96,15 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
                     history.append({"role": "tool", "tool_call_id": call_id, "content": result})
                     continue
 
+                if not isinstance(arguments, dict):
+                    result = f"Error: Tool arguments must be a JSON object, got {type(arguments).__name__}"
+                    tool_calls_with_results.append({
+                        "name": tool_name, "args": {}, "result": result,
+                        "duration_ms": 0, "denied": False,
+                    })
+                    history.append({"role": "tool", "tool_call_id": call_id, "content": result})
+                    continue
+
                 # Check confirmation requirement
                 if tool_name in tools.TOOLS and tools.TOOLS[tool_name]["requires_confirmation"]:
                     if not _confirm_tool(tool_name, arguments):
