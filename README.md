@@ -11,7 +11,13 @@ A framework-free tool-use routing engine in Python. Raw LLM API calls + a loop. 
 
 ## Setup
 
+This project requires **Python 3.10+**.
+
+It is recommended to use a virtual environment:
+
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
