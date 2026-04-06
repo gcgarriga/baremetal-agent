@@ -74,7 +74,13 @@ def chat_completion(messages: list[dict], tools: list[dict]) -> dict:
             raise RuntimeError(f"Connection failed after {max_retries} retries: {exc}") from exc
 
         if resp.status_code == 200:
-            data = resp.json()
+            try:
+                data = resp.json()
+            except (ValueError, json.JSONDecodeError) as exc:
+                raise RuntimeError(
+                    f"Invalid JSON in 200 response: {exc}\n"
+                    f"Body: {resp.text[:500]}"
+                ) from exc
             _log_box("API Response", _redact(f"{resp.status_code} OK\n{json.dumps(data, indent=2)}"))
             return data
 
