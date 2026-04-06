@@ -2,7 +2,7 @@
 
 A framework-free tool-use routing engine in Python. Raw LLM API calls + a loop. No LangChain, no abstractions.
 
-## What You'll Learn
+## Key Concepts
 
 1. **Tool-use message flow** — `user → assistant tool_calls → tool results → assistant continues`
 2. **Tool chaining** — how models sequence multiple tools
