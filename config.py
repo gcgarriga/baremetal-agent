@@ -1,8 +1,25 @@
-"""Configuration loaded from environment variables."""
+"""Configuration loaded from environment variables (with .env fallback)."""
 
 import os
 import sys
 from pathlib import Path
+
+
+def _load_dotenv() -> None:
+    """Load key=value pairs from .env file into os.environ."""
+    env_path = Path(__file__).parent / ".env"
+    if not env_path.exists():
+        return
+    for line in env_path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" in line:
+            key, _, value = line.partition("=")
+            os.environ.setdefault(key.strip(), value.strip())
+
+
+_load_dotenv()
 
 
 def _require_env(name: str) -> str:
