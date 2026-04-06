@@ -1,0 +1,5 @@
+.gspec/
+__pycache__/
+*.pyc
+.env
+trajectory*.json
