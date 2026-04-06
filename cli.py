@@ -1,8 +1,5 @@
 """Interactive CLI REPL for the baremetal agent."""
 
-import json
-import textwrap
-
 import agent
 import config
 import tools
