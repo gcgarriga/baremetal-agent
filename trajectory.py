@@ -29,7 +29,7 @@ def _extract_metrics(response: dict) -> dict:
 def _timestamp_from_response(response: dict) -> str:
     """Convert the API response's Unix 'created' field to ISO 8601."""
     created = response.get("created")
-    if created:
+    if created is not None:
         return datetime.fromtimestamp(created, tz=timezone.utc).isoformat()
     return datetime.now(timezone.utc).isoformat()
 
