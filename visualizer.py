@@ -6,6 +6,7 @@ of raw JSON dumps when config.VERBOSE is False.
 """
 
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 from rich.text import Text
 
@@ -20,15 +21,14 @@ def _fmt_args(args: dict) -> str:
     for k, v in args.items():
         if isinstance(v, str) and len(v) > 60:
             v = v[:57] + "..."
-        parts.append(f'{k}="{v}"' if isinstance(v, str) else f"{k}={v}")
+        parts.append(f'{k}="{escape(str(v))}"' if isinstance(v, str) else f"{k}={v}")
     return ", ".join(parts)
 
 
 def _fmt_result_summary(result: str) -> str:
     """Summarize a tool result: first 3 lines + truncation notice."""
     lines = result.splitlines()
-    preview_lines = lines[:3]
-    # Indent continuation lines to align with first line
+    preview_lines = [escape(line) for line in lines[:3]]
     indented = "\n     ".join(preview_lines)
     if len(lines) > 3:
         indented += f"\n     ... ({len(lines) - 3} more lines)"
@@ -73,7 +73,7 @@ def render_tool_call_step(
     for i, tc in enumerate(tool_calls_with_results, 1):
         circled = '①②③④⑤⑥⑦⑧⑨⑩'[i - 1] if i <= 10 else f'({i})'
         lines.append("")
-        lines.append(f"  [bold]{circled}[/bold] [bold green]{tc['name']}[/bold green]({_fmt_args(tc['args'])})")
+        lines.append(f"  [bold]{circled}[/bold] [bold green]{escape(tc['name'])}[/bold green]({_fmt_args(tc['args'])})")
 
         if tc.get("denied"):
             lines.append("     [yellow]⚠️  denied by user[/yellow]")
@@ -119,7 +119,11 @@ def render_response(text: str, api_duration_ms: float, metrics: dict) -> None:
 
 
 def render_error(message: str) -> None:
-    """Render an error panel."""
+    """Render an error panel. Always shown (errors matter in both modes)."""
+    if config.VERBOSE:
+        print(f"\n❌ {message}\n")
+        return
+
     panel = Panel(
         Text(message, style="red"),
         title="[bold red]❌ Error[/bold red]",
