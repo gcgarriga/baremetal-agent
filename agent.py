@@ -52,6 +52,8 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
     Appends to `history` in place. Returns the final assistant text response.
     """
     history.append({"role": "user", "content": user_message})
+    history_start = len(history)
+    responses_start = len(api_responses)
 
     tool_definitions = tools.get_tool_definitions()
     iteration = 0
@@ -61,7 +63,9 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
         try:
             response = client.chat_completion(history, tool_definitions)
         except RuntimeError as exc:
-            history.pop()  # remove the user message to keep history valid
+            # Roll back everything added during this turn
+            del history[history_start - 1:]
+            del api_responses[responses_start:]
             error_msg = f"API error: {exc}"
             print(f"\n❌ {error_msg}\n")
             return error_msg

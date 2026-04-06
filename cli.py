@@ -148,7 +148,11 @@ def run() -> None:
             atif = trajectory.history_to_atif(
                 history, agent.api_responses, config.MODEL,
             )
-            trajectory.save_trajectory(atif, path)
+            try:
+                trajectory.save_trajectory(atif, path)
+            except OSError as exc:
+                print(f"\n  ❌ Failed to write trajectory: {exc}\n")
+                continue
             n_steps = atif["final_metrics"]["total_steps"]
             tokens = atif["final_metrics"]["total_prompt_tokens"] + atif["final_metrics"]["total_completion_tokens"]
             print(f"\n  ✅ Trajectory exported: {path}")

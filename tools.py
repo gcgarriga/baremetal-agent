@@ -193,6 +193,8 @@ def git_status() -> str:
             text=True,
             cwd=config.WORKING_DIR,
         )
+        if result.returncode != 0 and result.stderr.strip():
+            return f"git status error: {result.stderr.strip()}"
         output = result.stdout.strip()
         return output if output else "(working tree clean)"
     except Exception as exc:
@@ -202,12 +204,17 @@ def git_status() -> str:
 def git_diff(*, file: str | None = None) -> str:
     """Show git diff, optionally for a specific file."""
     try:
-        cmd = ["git", "diff"]
+        cmd = ["git", "diff", "--"]
         if file:
-            cmd.append(file)
+            target = _resolve_safe(file)
+            if isinstance(target, str):
+                return target
+            cmd.append(str(target.relative_to(config.WORKING_DIR)))
         result = subprocess.run(
             cmd, capture_output=True, text=True, cwd=config.WORKING_DIR
         )
+        if result.returncode != 0 and result.stderr.strip():
+            return f"git diff error: {result.stderr.strip()}"
         output = result.stdout.strip()
         if not output:
             return "(no changes)" if not file else f"(no changes for {file})"
@@ -229,6 +236,8 @@ def git_log(*, count: int = 10) -> str:
             text=True,
             cwd=config.WORKING_DIR,
         )
+        if result.returncode != 0 and result.stderr.strip():
+            return f"git log error: {result.stderr.strip()}"
         output = result.stdout.strip()
         return output if output else "(no commits)"
     except Exception as exc:
@@ -343,7 +352,7 @@ TOOLS: dict[str, dict] = {
             "type": "function",
             "function": {
                 "name": "shell_exec",
-                "description": "Execute a shell command and return stdout + stderr. Dangerous commands are blocked. Output capped at 10,000 characters.",
+                "description": "Execute a shell command and return stdout + stderr. Requires user confirmation. Output capped at 10,000 characters.",
                 "parameters": {
                     "type": "object",
                     "properties": {
