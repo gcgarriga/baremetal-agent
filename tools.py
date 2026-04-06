@@ -37,6 +37,8 @@ def _validate_args(name: str, args: dict, schema: dict) -> str | None:
             continue  # extra args are ignored, not an error
         expected_type = props[key].get("type")
         if expected_type and expected_type in _TYPE_MAP:
+            if expected_type in {"integer", "number"} and isinstance(value, bool):
+                return f"Argument '{key}' must be {expected_type}, got {type(value).__name__}"
             if not isinstance(value, _TYPE_MAP[expected_type]):
                 return f"Argument '{key}' must be {expected_type}, got {type(value).__name__}"
 
