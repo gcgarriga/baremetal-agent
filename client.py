@@ -1,5 +1,6 @@
 """Raw HTTP client for the GitHub Models API (OpenAI-compatible chat completions)."""
 
+import atexit
 import json
 import re
 import time
@@ -9,6 +10,7 @@ import httpx
 import config
 
 _client = httpx.Client(timeout=120.0)
+atexit.register(_client.close)
 
 _BOX_TOP = "╭─ {} ─{}"
 _BOX_BOT = "╰" + "─" * 60 + "╯"
