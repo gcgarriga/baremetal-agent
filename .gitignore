@@ -1,4 +1,5 @@
-.gspec/
+.gspec/*
+!.gspec/brief.md
 __pycache__/
 *.pyc
 .env

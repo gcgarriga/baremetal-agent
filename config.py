@@ -39,6 +39,8 @@ MODEL: str = os.environ.get("AGENT_MODEL", "openai/gpt-4.1")
 MAX_ITERATIONS: int = int(os.environ.get("AGENT_MAX_ITERATIONS", "10"))
 WORKING_DIR: Path = Path(os.environ.get("AGENT_WORKING_DIR", ".")).resolve()
 
+VERBOSE: bool = os.environ.get("AGENT_VERBOSE", "").lower() in ("1", "true", "yes")
+
 SYSTEM_PROMPT: str = (
     "You are a developer assistant with access to tools for working with the local "
     "filesystem and git repositories. When the user asks about files, code, or git "
