@@ -75,7 +75,6 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
         # Parse the response
         choice = response["choices"][0]
         message = choice["message"]
-        finish_reason = choice.get("finish_reason", "")
 
         # Case 1: model wants to call tools (check this first — some providers
         # may return tool_calls alongside finish_reason="stop")
