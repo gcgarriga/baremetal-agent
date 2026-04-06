@@ -1,6 +1,7 @@
 """Raw HTTP client for the GitHub Models API (OpenAI-compatible chat completions)."""
 
 import json
+import re
 import time
 
 import httpx
@@ -11,6 +12,23 @@ _client = httpx.Client(timeout=120.0)
 
 _BOX_TOP = "╭─ {} ─{}"
 _BOX_BOT = "╰" + "─" * 60 + "╯"
+
+# Patterns that look like secrets — redact all but the first 6 chars
+_SECRET_RE = re.compile(
+    r"(ghp_|gho_|ghu_|github_pat_|sk-|key-|token[=: ]+|password[=: ]+)"
+    r"[A-Za-z0-9_\-]{6}([A-Za-z0-9_\-]+)",
+    re.IGNORECASE,
+)
+
+
+def _redact(text: str) -> str:
+    """Replace secrets in text with a redacted version, keeping a short prefix."""
+    def _mask(m: re.Match) -> str:
+        prefix = m.group(1)
+        visible = m.group(0)[len(prefix):len(prefix) + 6]
+        hidden_len = len(m.group(2))
+        return f"{prefix}{visible}{'*' * hidden_len}"
+    return _SECRET_RE.sub(_mask, text)
 
 
 def _log_box(title: str, body: str) -> None:
@@ -41,7 +59,7 @@ def chat_completion(messages: list[dict], tools: list[dict]) -> dict:
         "Content-Type": "application/json",
     }
 
-    _log_box("API Request", f"POST {config.API_URL}\n{json.dumps(body, indent=2)}")
+    _log_box("API Request", _redact(f"POST {config.API_URL}\n{json.dumps(body, indent=2)}"))
 
     max_retries = 3
     for attempt in range(max_retries + 1):
@@ -57,7 +75,7 @@ def chat_completion(messages: list[dict], tools: list[dict]) -> dict:
 
         if resp.status_code == 200:
             data = resp.json()
-            _log_box("API Response", f"{resp.status_code} OK\n{json.dumps(data, indent=2)}")
+            _log_box("API Response", _redact(f"{resp.status_code} OK\n{json.dumps(data, indent=2)}"))
             return data
 
         if resp.status_code == 401:
