@@ -161,6 +161,6 @@ def history_to_atif(
 
 def save_trajectory(trajectory: dict, path: str) -> str:
     """Write an ATIF trajectory to a JSON file. Returns the path written."""
-    with open(path, "w") as f:
-        json.dump(trajectory, f, indent=2)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(trajectory, f, indent=2, ensure_ascii=False)
     return path
