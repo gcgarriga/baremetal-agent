@@ -6,31 +6,15 @@ produces a final text response or the iteration limit is reached.
 """
 
 import json
+import time
 
 import client
 import config
 import tools
-
-_BOX_TOP = "╭─ {} ─{}"
-_BOX_BOT = "╰" + "─" * 60 + "╯"
+import visualizer
 
 # Raw API responses stored for trajectory export
 api_responses: list[dict] = []
-
-
-def _log_tool_call(name: str, args: dict, result: str) -> None:
-    """Log a tool call with its arguments and result."""
-    pad = "─" * max(0, 58 - len("Tool Call"))
-    print(_BOX_TOP.format("Tool Call", pad + "╮"))
-    args_str = ", ".join(f'{k}={json.dumps(v)}' for k, v in args.items())
-    print(f"│ {name}({args_str})")
-    print(f"│")
-    for line in result.splitlines()[:30]:
-        print(f"│ {line}")
-    if len(result.splitlines()) > 30:
-        print(f"│ ... ({len(result.splitlines()) - 30} more lines)")
-    print(_BOX_BOT)
-    print()
 
 
 def _confirm_tool(name: str, args: dict) -> bool:
@@ -43,7 +27,9 @@ def _confirm_tool(name: str, args: dict) -> bool:
     except (EOFError, KeyboardInterrupt):
         print()
         return False
-    return answer in ("y", "yes")
+    approved = answer in ("y", "yes")
+    visualizer.render_confirmation(name, args, approved)
+    return approved
 
 
 def run_agent_turn(user_message: str, history: list[dict]) -> str:
@@ -57,20 +43,27 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
 
     tool_definitions = tools.get_tool_definitions()
     iteration = 0
+    turn_start = time.time()
+    cumulative_tokens = 0
 
     while iteration < config.MAX_ITERATIONS:
         # Call the LLM
         try:
+            api_start = time.time()
             response = client.chat_completion(history, tool_definitions)
+            api_duration_ms = (time.time() - api_start) * 1000
         except RuntimeError as exc:
             # Roll back everything added during this turn
             del history[history_start - 1:]
             del api_responses[responses_start:]
             error_msg = f"API error: {exc}"
-            print(f"\n❌ {error_msg}\n")
+            visualizer.render_error(error_msg)
             return error_msg
 
         api_responses.append(response)
+        metrics = response.get("usage", {})
+        step_tokens = metrics.get("prompt_tokens", 0) + metrics.get("completion_tokens", 0)
+        cumulative_tokens += step_tokens
 
         # Parse the response
         choice = response["choices"][0]
@@ -84,7 +77,8 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
             assistant_msg["tool_calls"] = message["tool_calls"]
             history.append(assistant_msg)
 
-            # Execute each tool call
+            # Execute each tool call, collecting results for visualization
+            tool_calls_with_results = []
             for tool_call in message["tool_calls"]:
                 call_id = tool_call["id"]
                 func = tool_call["function"]
@@ -95,7 +89,10 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
                     arguments = json.loads(func["arguments"]) if func["arguments"] else {}
                 except json.JSONDecodeError as exc:
                     result = f"Error: Could not parse arguments as JSON: {exc}\nRaw: {func['arguments']}"
-                    _log_tool_call(tool_name, {}, result)
+                    tool_calls_with_results.append({
+                        "name": tool_name, "args": {}, "result": result,
+                        "duration_ms": 0, "denied": False,
+                    })
                     history.append({"role": "tool", "tool_call_id": call_id, "content": result})
                     continue
 
@@ -103,21 +100,38 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
                 if tool_name in tools.TOOLS and tools.TOOLS[tool_name]["requires_confirmation"]:
                     if not _confirm_tool(tool_name, arguments):
                         result = "Tool execution denied by user."
-                        _log_tool_call(tool_name, arguments, result)
+                        tool_calls_with_results.append({
+                            "name": tool_name, "args": arguments, "result": result,
+                            "duration_ms": 0, "denied": True,
+                        })
                         history.append({"role": "tool", "tool_call_id": call_id, "content": result})
                         continue
 
                 # Execute the tool
+                tool_start = time.time()
                 result = tools.execute_tool(tool_name, arguments)
-                _log_tool_call(tool_name, arguments, result)
+                tool_duration_ms = (time.time() - tool_start) * 1000
+
+                tool_calls_with_results.append({
+                    "name": tool_name, "args": arguments, "result": result,
+                    "duration_ms": tool_duration_ms, "denied": False,
+                })
                 history.append({"role": "tool", "tool_call_id": call_id, "content": result})
 
             iteration += 1
+            visualizer.render_tool_call_step(
+                iteration, tool_calls_with_results, api_duration_ms, metrics,
+            )
             continue
 
         # Case 2: model produced a final text response (no tool_calls)
         content = message.get("content", "")
         history.append({"role": "assistant", "content": content})
+
+        visualizer.render_response(content, api_duration_ms, metrics)
+        total_ms = (time.time() - turn_start) * 1000
+        visualizer.render_trajectory_summary(iteration + 1, cumulative_tokens, total_ms)
+
         return content
 
     # Hit the iteration limit
@@ -126,5 +140,5 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
         f"The agent made {config.MAX_ITERATIONS} rounds of tool calls without "
         f"producing a final answer. Use 'clear' to reset the conversation."
     )
-    print(f"\n⚠️  {limit_msg}\n")
+    visualizer.render_error(limit_msg)
     return limit_msg
