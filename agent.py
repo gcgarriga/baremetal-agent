@@ -14,6 +14,9 @@ import tools
 _BOX_TOP = "╭─ {} ─{}"
 _BOX_BOT = "╰" + "─" * 60 + "╯"
 
+# Raw API responses stored for trajectory export
+api_responses: list[dict] = []
+
 
 def _log_tool_call(name: str, args: dict, result: str) -> None:
     """Log a tool call with its arguments and result."""
@@ -62,6 +65,8 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
             error_msg = f"API error: {exc}"
             print(f"\n❌ {error_msg}\n")
             return error_msg
+
+        api_responses.append(response)
 
         # Parse the response
         choice = response["choices"][0]

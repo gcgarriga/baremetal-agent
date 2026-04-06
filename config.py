@@ -32,7 +32,7 @@ def _require_env(name: str) -> str:
 
 TOKEN: str = _require_env("GITHUB_TOKEN")
 API_URL: str = "https://models.github.ai/inference/chat/completions"
-MODEL: str = os.environ.get("AGENT_MODEL", "openai/gpt-5")
+MODEL: str = os.environ.get("AGENT_MODEL", "openai/gpt-4.1")
 MAX_ITERATIONS: int = int(os.environ.get("AGENT_MAX_ITERATIONS", "10"))
 WORKING_DIR: Path = Path(os.environ.get("AGENT_WORKING_DIR", ".")).resolve()
 
