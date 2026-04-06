@@ -131,17 +131,20 @@ def search_code(*, pattern: str, path: str = ".", file_glob: str = "*") -> str:
                 if fnmatch.fnmatch(filename, file_glob):
                     files_to_search.append(Path(root) / filename)
 
+    max_file_bytes = 1 * 1024 * 1024  # skip files larger than 1 MB
     for filepath in files_to_search:
         if len(matches) >= max_matches:
             break
         try:
-            text = filepath.read_text(encoding="utf-8", errors="replace")
-            for line_num, line in enumerate(text.splitlines(), 1):
-                if compiled.search(line):
-                    rel_path = filepath.relative_to(config.WORKING_DIR)
-                    matches.append(f"{rel_path}:{line_num}: {line.rstrip()}")
-                    if len(matches) >= max_matches:
-                        break
+            if filepath.stat().st_size > max_file_bytes:
+                continue
+            with open(filepath, encoding="utf-8", errors="replace") as fh:
+                for line_num, line in enumerate(fh, 1):
+                    if compiled.search(line):
+                        rel_path = filepath.relative_to(config.WORKING_DIR)
+                        matches.append(f"{rel_path}:{line_num}: {line.rstrip()}")
+                        if len(matches) >= max_matches:
+                            break
         except (PermissionError, OSError):
             continue
 
