@@ -6,6 +6,7 @@ import textwrap
 import agent
 import config
 import tools
+import trajectory
 
 
 def _print_banner() -> None:
@@ -37,6 +38,7 @@ def _cmd_help() -> None:
     print("  help           Show this help message")
     print("  tools          List registered tools with descriptions")
     print("  history        Show conversation history")
+    print("  trajectory     Export conversation as ATIF trajectory JSON")
     print("  clear          Reset conversation history")
     print("  model <name>   Switch to a different model")
     print("  exit / quit    Exit the agent")
@@ -136,7 +138,22 @@ def run() -> None:
         if cmd == "clear":
             history.clear()
             history.append({"role": "system", "content": config.SYSTEM_PROMPT})
+            agent.api_responses.clear()
             print("\n  Conversation history cleared.\n")
+            continue
+
+        if cmd == "trajectory" or cmd.startswith("trajectory "):
+            parts = user_input.split(maxsplit=1)
+            path = parts[1] if len(parts) > 1 else "trajectory.json"
+            atif = trajectory.history_to_atif(
+                history, agent.api_responses, config.MODEL,
+            )
+            trajectory.save_trajectory(atif, path)
+            n_steps = atif["final_metrics"]["total_steps"]
+            tokens = atif["final_metrics"]["total_prompt_tokens"] + atif["final_metrics"]["total_completion_tokens"]
+            print(f"\n  ✅ Trajectory exported: {path}")
+            print(f"     {n_steps} steps, {tokens} total tokens")
+            print(f"     Format: ATIF-v1.4\n")
             continue
 
         if cmd.startswith("model "):
