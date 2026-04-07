@@ -328,7 +328,10 @@ TOOLS: dict[str, dict] = {
             "type": "function",
             "function": {
                 "name": "search_code",
-                "description": "Search for a regex pattern in files. Returns matching lines with file paths and line numbers. Caps at 50 matches.",
+                "description": (
+                        "Search for a regex pattern in files."
+                        " Returns matching lines with file paths and line numbers. Caps at 50 matches."
+                    ),
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -357,7 +360,10 @@ TOOLS: dict[str, dict] = {
             "type": "function",
             "function": {
                 "name": "shell_exec",
-                "description": "Execute a shell command and return stdout + stderr. Requires user confirmation. Output capped at 10,000 characters.",
+                "description": (
+                        "Execute a shell command and return stdout + stderr."
+                        " Requires user confirmation. Output capped at 10,000 characters."
+                    ),
                 "parameters": {
                     "type": "object",
                     "properties": {

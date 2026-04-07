@@ -9,7 +9,7 @@ Spec: https://github.com/laude-institute/harbor/blob/main/docs/rfcs/0001-traject
 
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def _extract_metrics(response: dict) -> dict:
@@ -30,8 +30,8 @@ def _timestamp_from_response(response: dict) -> str:
     """Convert the API response's Unix 'created' field to ISO 8601."""
     created = response.get("created")
     if created is not None:
-        return datetime.fromtimestamp(created, tz=timezone.utc).isoformat()
-    return datetime.now(timezone.utc).isoformat()
+        return datetime.fromtimestamp(created, tz=UTC).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def history_to_atif(
@@ -52,7 +52,7 @@ def history_to_atif(
     steps: list[dict] = []
     step_id = 1
     resp_idx = 0  # tracks which API response corresponds to the current assistant msg
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     i = 0
     while i < len(history):

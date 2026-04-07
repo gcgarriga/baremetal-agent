@@ -107,8 +107,11 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
                     continue
 
                 # Check confirmation requirement
-                if tool_name in tools.TOOLS and tools.TOOLS[tool_name]["requires_confirmation"]:
-                    if not _confirm_tool(tool_name, arguments):
+                if (
+                    tool_name in tools.TOOLS
+                    and tools.TOOLS[tool_name]["requires_confirmation"]
+                    and not _confirm_tool(tool_name, arguments)
+                ):
                         result = "Tool execution denied by user."
                         tool_calls_with_results.append({
                             "name": tool_name, "args": arguments, "result": result,
