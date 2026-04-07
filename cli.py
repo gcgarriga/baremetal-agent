@@ -156,7 +156,7 @@ def run() -> None:
             tokens = atif["final_metrics"]["total_prompt_tokens"] + atif["final_metrics"]["total_completion_tokens"]
             print(f"\n  ✅ Trajectory exported: {path}")
             print(f"     {n_steps} steps, {tokens} total tokens")
-            print(f"     Format: ATIF-v1.4\n")
+            print("     Format: ATIF-v1.4\n")
             continue
 
         if cmd.startswith("model "):
