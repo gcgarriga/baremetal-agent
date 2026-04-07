@@ -49,6 +49,7 @@ def _validate_args(name: str, args: dict, schema: dict) -> str | None:
 # Tool implementations
 # ---------------------------------------------------------------------------
 
+
 def _resolve_safe(path: str) -> Path | str:
     """Resolve a path and verify it stays within WORKING_DIR.
 
@@ -215,9 +216,7 @@ def git_diff(*, file: str | None = None) -> str:
             if isinstance(target, str):
                 return target
             cmd.append(str(target.relative_to(config.WORKING_DIR)))
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, cwd=config.WORKING_DIR
-        )
+        result = subprocess.run(cmd, capture_output=True, text=True, cwd=config.WORKING_DIR)
         if result.returncode != 0 and result.stderr.strip():
             return f"git diff error: {result.stderr.strip()}"
         output = result.stdout.strip()
@@ -329,9 +328,9 @@ TOOLS: dict[str, dict] = {
             "function": {
                 "name": "search_code",
                 "description": (
-                        "Search for a regex pattern in files."
-                        " Returns matching lines with file paths and line numbers. Caps at 50 matches."
-                    ),
+                    "Search for a regex pattern in files."
+                    " Returns matching lines with file paths and line numbers. Caps at 50 matches."
+                ),
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -361,9 +360,9 @@ TOOLS: dict[str, dict] = {
             "function": {
                 "name": "shell_exec",
                 "description": (
-                        "Execute a shell command and return stdout + stderr."
-                        " Requires user confirmation. Output capped at 10,000 characters."
-                    ),
+                    "Execute a shell command and return stdout + stderr."
+                    " Requires user confirmation. Output capped at 10,000 characters."
+                ),
                 "parameters": {
                     "type": "object",
                     "properties": {

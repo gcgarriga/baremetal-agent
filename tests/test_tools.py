@@ -11,6 +11,7 @@ import tools
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(autouse=True)
 def _working_dir(tmp_path, monkeypatch):
     """Point config.WORKING_DIR at a temp directory for every test."""
@@ -20,6 +21,7 @@ def _working_dir(tmp_path, monkeypatch):
 # ---------------------------------------------------------------------------
 # _validate_args
 # ---------------------------------------------------------------------------
+
 
 class TestValidateArgs:
     SCHEMA = {
@@ -54,6 +56,7 @@ class TestValidateArgs:
 # _resolve_safe
 # ---------------------------------------------------------------------------
 
+
 class TestResolveSafe:
     def test_normal_path(self):
         result = tools._resolve_safe("foo.txt")
@@ -72,6 +75,7 @@ class TestResolveSafe:
 # ---------------------------------------------------------------------------
 # read_file / write_file / list_directory
 # ---------------------------------------------------------------------------
+
 
 class TestFileTools:
     def test_read_existing_file(self):
@@ -113,6 +117,7 @@ class TestFileTools:
 # execute_tool
 # ---------------------------------------------------------------------------
 
+
 class TestExecuteTool:
     def test_unknown_tool(self):
         result = tools.execute_tool("nonexistent", {})
@@ -131,6 +136,7 @@ class TestExecuteTool:
 # ---------------------------------------------------------------------------
 # search_code
 # ---------------------------------------------------------------------------
+
 
 class TestSearchCode:
     def test_finds_pattern(self):

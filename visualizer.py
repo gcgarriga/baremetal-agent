@@ -71,7 +71,7 @@ def render_tool_call_step(
 
     lines = []
     for i, tc in enumerate(tool_calls_with_results, 1):
-        circled = '①②③④⑤⑥⑦⑧⑨⑩'[i - 1] if i <= 10 else f'({i})'
+        circled = "①②③④⑤⑥⑦⑧⑨⑩"[i - 1] if i <= 10 else f"({i})"
         lines.append("")
         lines.append(f"  [bold]{circled}[/bold] [bold green]{escape(tc['name'])}[/bold green]({_fmt_args(tc['args'])})")
 
@@ -144,7 +144,9 @@ def render_confirmation(name: str, args: dict, approved: bool) -> None:
 
 
 def render_trajectory_summary(
-    iterations: int, total_tokens: int, total_ms: float,
+    iterations: int,
+    total_tokens: int,
+    total_ms: float,
 ) -> None:
     """Render the trajectory footer summary after a turn completes."""
     if config.VERBOSE:
@@ -153,9 +155,7 @@ def render_trajectory_summary(
     line = (
         f"[dim]─── Trajectory: {iterations} step{'s' if iterations != 1 else ''}"
         f" │ {total_tokens} tokens"
-        f" │ {_fmt_ms(total_ms)} total "
-        + "─" * 20
-        + "[/dim]"
+        f" │ {_fmt_ms(total_ms)} total " + "─" * 20 + "[/dim]"
     )
     console.print(line)
     console.print()

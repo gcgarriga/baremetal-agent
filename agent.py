@@ -90,19 +90,29 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
                     arguments = json.loads(func["arguments"]) if func["arguments"] else {}
                 except json.JSONDecodeError as exc:
                     result = f"Error: Could not parse arguments as JSON: {exc}\nRaw: {func['arguments']}"
-                    tool_calls_with_results.append({
-                        "name": tool_name, "args": {}, "result": result,
-                        "duration_ms": 0, "denied": False,
-                    })
+                    tool_calls_with_results.append(
+                        {
+                            "name": tool_name,
+                            "args": {},
+                            "result": result,
+                            "duration_ms": 0,
+                            "denied": False,
+                        }
+                    )
                     history.append({"role": "tool", "tool_call_id": call_id, "content": result})
                     continue
 
                 if not isinstance(arguments, dict):
                     result = f"Error: Tool arguments must be a JSON object, got {type(arguments).__name__}"
-                    tool_calls_with_results.append({
-                        "name": tool_name, "args": {}, "result": result,
-                        "duration_ms": 0, "denied": False,
-                    })
+                    tool_calls_with_results.append(
+                        {
+                            "name": tool_name,
+                            "args": {},
+                            "result": result,
+                            "duration_ms": 0,
+                            "denied": False,
+                        }
+                    )
                     history.append({"role": "tool", "tool_call_id": call_id, "content": result})
                     continue
 
@@ -112,28 +122,41 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
                     and tools.TOOLS[tool_name]["requires_confirmation"]
                     and not _confirm_tool(tool_name, arguments)
                 ):
-                        result = "Tool execution denied by user."
-                        tool_calls_with_results.append({
-                            "name": tool_name, "args": arguments, "result": result,
-                            "duration_ms": 0, "denied": True,
-                        })
-                        history.append({"role": "tool", "tool_call_id": call_id, "content": result})
-                        continue
+                    result = "Tool execution denied by user."
+                    tool_calls_with_results.append(
+                        {
+                            "name": tool_name,
+                            "args": arguments,
+                            "result": result,
+                            "duration_ms": 0,
+                            "denied": True,
+                        }
+                    )
+                    history.append({"role": "tool", "tool_call_id": call_id, "content": result})
+                    continue
 
                 # Execute the tool
                 tool_start = time.time()
                 result = tools.execute_tool(tool_name, arguments)
                 tool_duration_ms = (time.time() - tool_start) * 1000
 
-                tool_calls_with_results.append({
-                    "name": tool_name, "args": arguments, "result": result,
-                    "duration_ms": tool_duration_ms, "denied": False,
-                })
+                tool_calls_with_results.append(
+                    {
+                        "name": tool_name,
+                        "args": arguments,
+                        "result": result,
+                        "duration_ms": tool_duration_ms,
+                        "denied": False,
+                    }
+                )
                 history.append({"role": "tool", "tool_call_id": call_id, "content": result})
 
             iteration += 1
             visualizer.render_tool_call_step(
-                iteration, tool_calls_with_results, api_duration_ms, metrics,
+                iteration,
+                tool_calls_with_results,
+                api_duration_ms,
+                metrics,
             )
             continue
 
