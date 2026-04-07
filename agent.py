@@ -37,9 +37,10 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
 
     Appends to `history` in place. Returns the final assistant text response.
     """
-    history.append({"role": "user", "content": user_message})
+    # Mark rollback point before any mutations
     history_start = len(history)
     responses_start = len(api_responses)
+    history.append({"role": "user", "content": user_message})
 
     tool_definitions = tools.get_tool_definitions()
     iteration = 0
@@ -54,7 +55,7 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
             api_duration_ms = (time.time() - api_start) * 1000
         except RuntimeError as exc:
             # Roll back everything added during this turn
-            del history[history_start - 1:]
+            del history[history_start:]
             del api_responses[responses_start:]
             error_msg = f"API error: {exc}"
             visualizer.render_error(error_msg)

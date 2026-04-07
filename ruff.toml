@@ -1,0 +1,7 @@
+target-version = "py312"
+line-length = 100
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+# E: pycodestyle errors, F: pyflakes, I: isort, UP: pyupgrade
+# B: bugbear (catches real bugs), SIM: simplify
