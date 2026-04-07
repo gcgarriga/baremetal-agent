@@ -25,11 +25,13 @@ _SECRET_RE = re.compile(
 
 def _redact(text: str) -> str:
     """Replace secrets in text with a redacted version, keeping a short prefix."""
+
     def _mask(m: re.Match) -> str:
         prefix = m.group(1)
-        visible = m.group(0)[len(prefix):len(prefix) + 6]
+        visible = m.group(0)[len(prefix) : len(prefix) + 6]
         hidden_len = len(m.group(2))
         return f"{prefix}{visible}{'*' * hidden_len}"
+
     return _SECRET_RE.sub(_mask, text)
 
 
@@ -61,7 +63,8 @@ def chat_completion(messages: list[dict], tools: list[dict]) -> dict:
         "Content-Type": "application/json",
     }
 
-    _log_box("API Request", _redact(f"POST {config.API_URL}\n{json.dumps(body, indent=2)}"))
+    if config.VERBOSE:
+        _log_box("API Request", _redact(f"POST {config.API_URL}\n{json.dumps(body, indent=2)}"))
 
     max_retries = 3
     for attempt in range(max_retries + 1):
@@ -69,7 +72,7 @@ def chat_completion(messages: list[dict], tools: list[dict]) -> dict:
             resp = _client.post(config.API_URL, headers=headers, json=body)
         except httpx.RequestError as exc:
             if attempt < max_retries:
-                wait = 2 ** attempt
+                wait = 2**attempt
                 print(f"│ Connection error: {exc}. Retrying in {wait}s...")
                 time.sleep(wait)
                 continue
@@ -79,18 +82,13 @@ def chat_completion(messages: list[dict], tools: list[dict]) -> dict:
             try:
                 data = resp.json()
             except (ValueError, json.JSONDecodeError) as exc:
-                raise RuntimeError(
-                    f"Invalid JSON in 200 response: {exc}\n"
-                    f"Body: {resp.text[:500]}"
-                ) from exc
-            _log_box("API Response", _redact(f"{resp.status_code} OK\n{json.dumps(data, indent=2)}"))
+                raise RuntimeError(f"Invalid JSON in 200 response: {exc}\nBody: {resp.text[:500]}") from exc
+            if config.VERBOSE:
+                _log_box("API Response", _redact(f"{resp.status_code} OK\n{json.dumps(data, indent=2)}"))
             return data
 
         if resp.status_code == 401:
-            raise RuntimeError(
-                "Authentication failed (401). Check your GITHUB_TOKEN.\n"
-                f"Response: {resp.text}"
-            )
+            raise RuntimeError(f"Authentication failed (401). Check your GITHUB_TOKEN.\nResponse: {resp.text}")
 
         if resp.status_code == 429:
             try:
@@ -105,19 +103,16 @@ def chat_completion(messages: list[dict], tools: list[dict]) -> dict:
 
         if resp.status_code >= 500:
             if attempt < max_retries:
-                wait = 2 ** attempt
+                wait = 2**attempt
                 print(f"│ Server error ({resp.status_code}). Retrying in {wait}s...")
                 time.sleep(wait)
                 continue
             raise RuntimeError(
-                f"Server error after {max_retries} retries.\n"
-                f"Status: {resp.status_code}\nResponse: {resp.text}"
+                f"Server error after {max_retries} retries.\nStatus: {resp.status_code}\nResponse: {resp.text}"
             )
 
         # Other client errors — don't retry
-        raise RuntimeError(
-            f"API error {resp.status_code}.\nResponse: {resp.text}"
-        )
+        raise RuntimeError(f"API error {resp.status_code}.\nResponse: {resp.text}")
 
     # Should not reach here, but just in case
     raise RuntimeError("Exhausted retries without a response.")

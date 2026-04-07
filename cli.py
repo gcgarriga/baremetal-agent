@@ -18,6 +18,7 @@ def _print_banner() -> None:
     print(f"  Tools:    {len(tools.TOOLS)} registered ({tool_names})")
     print(f"  Max iter: {config.MAX_ITERATIONS}")
     print(f"  Work dir: {config.WORKING_DIR}")
+    print(f"  Verbose: {'on (raw API payloads)' if config.VERBOSE else 'off (rich visualization)'}")
     print("─" * 62)
     print("  System Prompt:")
     for line in config.SYSTEM_PROMPT.splitlines():
@@ -38,6 +39,7 @@ def _cmd_help() -> None:
     print("  trajectory     Export conversation as ATIF trajectory JSON")
     print("  clear          Reset conversation history")
     print("  model <name>   Switch to a different model")
+    print("  verbose        Toggle verbose mode (raw API payloads)")
     print("  exit / quit    Exit the agent")
     print()
 
@@ -143,7 +145,9 @@ def run() -> None:
             parts = user_input.split(maxsplit=1)
             path = parts[1] if len(parts) > 1 else "trajectory.json"
             atif = trajectory.history_to_atif(
-                history, agent.api_responses, config.MODEL,
+                history,
+                agent.api_responses,
+                config.MODEL,
             )
             try:
                 trajectory.save_trajectory(atif, path)
@@ -154,7 +158,7 @@ def run() -> None:
             tokens = atif["final_metrics"]["total_prompt_tokens"] + atif["final_metrics"]["total_completion_tokens"]
             print(f"\n  ✅ Trajectory exported: {path}")
             print(f"     {n_steps} steps, {tokens} total tokens")
-            print(f"     Format: ATIF-v1.4\n")
+            print("     Format: ATIF-v1.4\n")
             continue
 
         if cmd.startswith("model "):
@@ -165,10 +169,17 @@ def run() -> None:
                 print(f"\n  Current model: {config.MODEL}\n")
             continue
 
+        if cmd == "verbose":
+            config.VERBOSE = not config.VERBOSE
+            state = "on (raw API payloads)" if config.VERBOSE else "off (rich visualization)"
+            print(f"\n  Verbose: {state}\n")
+            continue
+
         # Send to the agent
         print()
         response = agent.run_agent_turn(user_input, history)
-        print("─" * 62)
-        print(response)
-        print("─" * 62)
+        if config.VERBOSE:
+            print("─" * 62)
+            print(response)
+            print("─" * 62)
         print()

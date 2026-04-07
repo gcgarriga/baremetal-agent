@@ -44,6 +44,7 @@ python main.py
 | `tools` | List registered tools |
 | `history` | Show conversation history |
 | `trajectory [path]` | Export conversation as ATIF-v1.4 JSON |
+| `verbose` | Toggle verbose mode (raw API payloads) |
 | `model <name>` | Switch model mid-conversation |
 | `clear` | Reset conversation |
 | `exit` | Quit |
@@ -67,6 +68,7 @@ main.py → cli.py → agent.py → client.py
 - **`agent.py`** — The agentic loop. Read this first.
 - **`tools.py`** — Tool registry + 8 implementations with path traversal protection
 - **`client.py`** — Raw HTTP to GitHub Models API, full payload logging with secret redaction
+- **`visualizer.py`** — Live rich terminal visualization of agent steps
 - **`trajectory.py`** — ATIF-v1.4 trajectory export
 - **`config.py`** — Env vars + `.env` file loading
 - **`cli.py`** — REPL with commands and confirmation prompts
