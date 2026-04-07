@@ -64,12 +64,14 @@ def history_to_atif(
             continue
 
         if role == "user":
-            steps.append({
-                "step_id": step_id,
-                "timestamp": now,
-                "source": "user",
-                "message": msg["content"],
-            })
+            steps.append(
+                {
+                    "step_id": step_id,
+                    "timestamp": now,
+                    "source": "user",
+                    "message": msg["content"],
+                }
+            )
             step_id += 1
             i += 1
             continue
@@ -99,11 +101,13 @@ def history_to_atif(
                             args = json.loads(args)
                         except json.JSONDecodeError:
                             args = {"_raw": args}
-                    tool_calls.append({
-                        "tool_call_id": tc["id"],
-                        "function_name": tc["function"]["name"],
-                        "arguments": args,
-                    })
+                    tool_calls.append(
+                        {
+                            "tool_call_id": tc["id"],
+                            "function_name": tc["function"]["name"],
+                            "arguments": args,
+                        }
+                    )
                 step["tool_calls"] = tool_calls
 
                 # Collect observation results from following tool messages
@@ -111,10 +115,12 @@ def history_to_atif(
                 j = i + 1
                 while j < len(history) and history[j]["role"] == "tool":
                     tool_msg = history[j]
-                    results.append({
-                        "source_call_id": tool_msg.get("tool_call_id", ""),
-                        "content": tool_msg.get("content", ""),
-                    })
+                    results.append(
+                        {
+                            "source_call_id": tool_msg.get("tool_call_id", ""),
+                            "content": tool_msg.get("content", ""),
+                        }
+                    )
                     j += 1
                 if results:
                     step["observation"] = {"results": results}
@@ -137,8 +143,7 @@ def history_to_atif(
     total_prompt = sum(r.get("usage", {}).get("prompt_tokens", 0) for r in api_responses)
     total_completion = sum(r.get("usage", {}).get("completion_tokens", 0) for r in api_responses)
     total_cached = sum(
-        r.get("usage", {}).get("prompt_tokens_details", {}).get("cached_tokens", 0)
-        for r in api_responses
+        r.get("usage", {}).get("prompt_tokens_details", {}).get("cached_tokens", 0) for r in api_responses
     )
 
     return {

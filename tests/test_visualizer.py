@@ -7,6 +7,7 @@ import visualizer
 # Formatting helpers
 # ---------------------------------------------------------------------------
 
+
 class TestFmtMs:
     def test_milliseconds(self):
         assert visualizer._fmt_ms(42) == "42ms"
@@ -61,18 +62,21 @@ class TestFmtResultSummary:
 # Render functions — smoke tests (no crash + verbose gating)
 # ---------------------------------------------------------------------------
 
+
 class TestRenderSmoke:
     def test_render_tool_call_step_no_crash(self, monkeypatch):
         monkeypatch.setattr(config, "VERBOSE", False)
         visualizer.render_tool_call_step(
             iteration=1,
-            tool_calls_with_results=[{
-                "name": "read_file",
-                "args": {"path": "test.txt"},
-                "result": "file content with [bold]markup[/bold]",
-                "duration_ms": 42.0,
-                "denied": False,
-            }],
+            tool_calls_with_results=[
+                {
+                    "name": "read_file",
+                    "args": {"path": "test.txt"},
+                    "result": "file content with [bold]markup[/bold]",
+                    "duration_ms": 42.0,
+                    "denied": False,
+                }
+            ],
             api_duration_ms=100.0,
             metrics={"prompt_tokens": 50, "completion_tokens": 20},
         )

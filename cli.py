@@ -145,7 +145,9 @@ def run() -> None:
             parts = user_input.split(maxsplit=1)
             path = parts[1] if len(parts) > 1 else "trajectory.json"
             atif = trajectory.history_to_atif(
-                history, agent.api_responses, config.MODEL,
+                history,
+                agent.api_responses,
+                config.MODEL,
             )
             try:
                 trajectory.save_trajectory(atif, path)
