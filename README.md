@@ -36,6 +36,20 @@ Get a token at **GitHub → Settings → Developer settings → Fine-grained tok
 python main.py
 ```
 
+## Example prompts
+
+Try a realistic onboarding prompt like:
+
+```text
+Before I change anything, help me understand this repo: summarize the architecture, required environment variables, and the current test surface.
+```
+
+Or a realistic implementation prompt like:
+
+```text
+I need to add a new tool to this agent. Show me where tools are registered, how their schemas are defined, how confirmation is enforced for dangerous tools, and what tests I should update.
+```
+
 ## Commands
 
 | Command | Description |
