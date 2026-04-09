@@ -38,10 +38,10 @@ python main.py
 
 ## Example prompts
 
-Try a realistic onboarding prompt like:
+Try a prompt like:
 
 ```text
-Before I change anything, help me understand this repo: summarize the architecture, required environment variables, and the current test surface.
+Help me understand this repo: summarize the architecture, required environment variables, and the current test surface.
 ```
 
 Or a realistic implementation prompt like:
