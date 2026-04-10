@@ -102,6 +102,11 @@ baremetal_agent/
 ├── tools.py        — Tool registry + 8 implementations with path traversal protection
 ├── trajectory.py   — ATIF-v1.4 trajectory export
 └── visualizer.py   — Live rich terminal visualization of agent steps
+tests/
+├── conftest.py     — Pytest setup (env vars for testing)
+├── test_tools.py   — Tool validation, path safety, execution
+└── test_visualizer.py — Formatting helpers and markup safety
+pyproject.toml      — Project metadata, dependencies, tool config
 ```
 
 Every API request and response is printed in full — that's the point.
