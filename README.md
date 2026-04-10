@@ -86,6 +86,12 @@ I need to add a new tool to this agent. Show me where tools are registered, how 
 ## Architecture
 
 ```
+cli.run() → agent.run_agent_turn() → client.chat_completion()
+                     ↓
+                  tools.execute_tool()
+```
+
+```
 baremetal_agent/
 ├── __init__.py     — Package version
 ├── __main__.py     — python -m entry point
