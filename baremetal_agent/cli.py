@@ -158,8 +158,8 @@ def run() -> None:
             print("     Format: ATIF-v1.4\n")
             continue
 
-        if cmd.startswith("model "):
-            new_model = user_input[6:].strip()
+        if cmd.startswith("model"):
+            new_model = user_input[5:].strip()
             if new_model:
                 _cmd_model(new_model)
             else:

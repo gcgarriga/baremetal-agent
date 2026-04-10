@@ -64,7 +64,14 @@ def run_agent_turn(user_message: str, history: list[dict]) -> str:
         cumulative_tokens += step_tokens
 
         # Parse the response
-        choice = response["choices"][0]
+        choices = response.get("choices")
+        if not choices:
+            del history[history_start:]
+            del api_responses[responses_start:]
+            error_msg = "API error: Response contained no choices"
+            visualizer.render_error(error_msg)
+            return error_msg
+        choice = choices[0]
         message = choice["message"]
 
         # Case 1: model wants to call tools (check this first — some providers

@@ -36,7 +36,14 @@ def _require_env(name: str) -> str:
 TOKEN: str = _require_env("GITHUB_TOKEN")
 API_URL: str = "https://models.github.ai/inference/chat/completions"
 MODEL: str = os.environ.get("AGENT_MODEL", "openai/gpt-4.1")
-MAX_ITERATIONS: int = int(os.environ.get("AGENT_MAX_ITERATIONS", "10"))
+try:
+    MAX_ITERATIONS: int = int(os.environ.get("AGENT_MAX_ITERATIONS", "10"))
+except ValueError:
+    print(
+        f"Error: AGENT_MAX_ITERATIONS must be an integer, got {os.environ['AGENT_MAX_ITERATIONS']!r}.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
 WORKING_DIR: Path = Path(os.environ.get("AGENT_WORKING_DIR", ".")).resolve()
 
 VERBOSE: bool = os.environ.get("AGENT_VERBOSE", "").lower() in ("1", "true", "yes")

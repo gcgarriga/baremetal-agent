@@ -1,6 +1,8 @@
 """Tests for config.py — .env loading and configuration."""
 
 import os
+import subprocess
+import sys
 from pathlib import Path
 
 from baremetal_agent import config
@@ -71,3 +73,20 @@ class TestWorkingDir:
 
     def test_working_dir_is_resolved(self):
         assert config.WORKING_DIR.is_absolute()
+
+
+class TestMaxIterationsValidation:
+    def test_invalid_max_iterations_exits_with_message(self):
+        """Non-integer AGENT_MAX_ITERATIONS should exit with a friendly error."""
+        result = subprocess.run(
+            [sys.executable, "-c", "from baremetal_agent import config"],
+            capture_output=True,
+            text=True,
+            env={
+                **os.environ,
+                "GITHUB_TOKEN": "test-token",
+                "AGENT_MAX_ITERATIONS": "notanumber",
+            },
+        )
+        assert result.returncode != 0
+        assert "AGENT_MAX_ITERATIONS must be an integer" in result.stderr
