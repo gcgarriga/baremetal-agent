@@ -91,6 +91,9 @@ cli.run() → agent.run_agent_turn() → client.chat_completion()
                   tools.execute_tool()
 ```
 
+
+## Project Structure
+
 ```
 baremetal_agent/
 ├── __init__.py     — Package version
