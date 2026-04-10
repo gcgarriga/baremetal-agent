@@ -4,8 +4,7 @@ from pathlib import Path
 
 import pytest
 
-import config
-import tools
+from baremetal_agent import config, tools
 
 # ---------------------------------------------------------------------------
 # Fixtures

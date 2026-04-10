@@ -11,7 +11,7 @@ import re
 import subprocess
 from pathlib import Path
 
-import config
+from baremetal_agent import config
 
 # ---------------------------------------------------------------------------
 # Argument validation

@@ -8,10 +8,7 @@ produces a final text response or the iteration limit is reached.
 import json
 import time
 
-import client
-import config
-import tools
-import visualizer
+from baremetal_agent import client, config, tools, visualizer
 
 # Raw API responses stored for trajectory export
 api_responses: list[dict] = []

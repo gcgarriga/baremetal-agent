@@ -1,9 +1,6 @@
 """Interactive CLI REPL for the baremetal agent."""
 
-import agent
-import config
-import tools
-import trajectory
+from baremetal_agent import agent, config, tools, trajectory
 
 
 def _print_banner() -> None:

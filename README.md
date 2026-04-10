@@ -18,7 +18,13 @@ It is recommended to use a virtual environment:
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -e .
+```
+
+For development (includes pytest and ruff):
+
+```bash
+pip install -e .[dev]
 ```
 
 Create a `.env` file (or export env vars):
@@ -33,7 +39,13 @@ Get a token at **GitHub → Settings → Developer settings → Fine-grained tok
 ## Run
 
 ```bash
-python main.py
+baremetal-agent
+```
+
+Or:
+
+```bash
+python -m baremetal_agent
 ```
 
 ## Example prompts
@@ -74,18 +86,16 @@ I need to add a new tool to this agent. Show me where tools are registered, how 
 ## Architecture
 
 ```
-main.py → cli.py → agent.py → client.py
-                       ↓
-                    tools.py
+baremetal_agent/
+├── __init__.py     — Package version
+├── __main__.py     — python -m entry point
+├── agent.py        — The agentic loop (read this first)
+├── cli.py          — REPL with commands and confirmation prompts
+├── client.py       — Raw HTTP to GitHub Models API, payload logging with secret redaction
+├── config.py       — Env vars + .env file loading
+├── tools.py        — Tool registry + 8 implementations with path traversal protection
+├── trajectory.py   — ATIF-v1.4 trajectory export
+└── visualizer.py   — Live rich terminal visualization of agent steps
 ```
-
-- **`agent.py`** — The agentic loop. Read this first.
-- **`tools.py`** — Tool registry + 8 implementations with path traversal protection
-- **`client.py`** — Raw HTTP to GitHub Models API, full payload logging with secret redaction
-- **`visualizer.py`** — Live rich terminal visualization of agent steps
-- **`trajectory.py`** — ATIF-v1.4 trajectory export
-- **`config.py`** — Env vars + `.env` file loading
-- **`cli.py`** — REPL with commands and confirmation prompts
-- **`main.py`** — Entry point (6 lines)
 
 Every API request and response is printed in full — that's the point.

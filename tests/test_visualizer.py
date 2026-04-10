@@ -1,7 +1,6 @@
 """Tests for visualizer.py — formatting helpers and markup safety."""
 
-import config
-import visualizer
+from baremetal_agent import config, visualizer
 
 # ---------------------------------------------------------------------------
 # Formatting helpers

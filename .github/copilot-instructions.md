@@ -6,10 +6,11 @@
 
 | Task    | Command                        |
 |---------|--------------------------------|
-| Run     | `python main.py`               |
-| Install | `pip install -r requirements.txt` |
-
-No test suite or linter is configured.
+| Run     | `python -m baremetal_agent`    |
+| Install | `pip install -e .`             |
+| Dev     | `pip install -e .[dev]`        |
+| Test    | `pytest`                       |
+| Lint    | `ruff check .`                 |
 
 ## Rules
 
@@ -26,13 +27,13 @@ No test suite or linter is configured.
 
 ## Boundaries
 
-- ✅ **Always:** Follow existing patterns (tools return strings, kwargs-only, registry-based). Use `_resolve_safe()` for any path access. Keep the flat module structure.
+- ✅ **Always:** Follow existing patterns (tools return strings, kwargs-only, registry-based). Use `_resolve_safe()` for any path access. Keep the package module structure.
 - ⚠️ **Ask first:** Adding new dependencies. Changing the system prompt. Modifying the API protocol or retry logic.
 - 🚫 **Never:** Add agent frameworks (LangChain, CrewAI, etc). Commit `.env` or secrets. Remove user confirmation from `write_file` or `shell_exec`.
 
 ## Canonical Examples
 
 Follow these files as templates for new code:
-- **Tool implementation:** `tools.py` — see `read_file` function + its `TOOLS` registry entry
-- **API client:** `client.py` — `chat_completion` with retry logic and payload logging
-- **Agent loop:** `agent.py` — `run_agent_turn` showing the tool-call loop pattern
+- **Tool implementation:** `baremetal_agent/tools.py` — see `read_file` function + its `TOOLS` registry entry
+- **API client:** `baremetal_agent/client.py` — `chat_completion` with retry logic and payload logging
+- **Agent loop:** `baremetal_agent/agent.py` — `run_agent_turn` showing the tool-call loop pattern

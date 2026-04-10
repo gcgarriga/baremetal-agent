@@ -7,7 +7,7 @@ from pathlib import Path
 
 def _load_dotenv() -> None:
     """Load key=value pairs from .env file into os.environ."""
-    env_path = Path(__file__).parent / ".env"
+    env_path = Path(os.environ.get("AGENT_DOTENV", Path.cwd() / ".env"))
     if not env_path.exists():
         return
     for line in env_path.read_text().splitlines():

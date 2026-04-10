@@ -7,7 +7,7 @@ import time
 
 import httpx
 
-import config
+from baremetal_agent import config
 
 _client = httpx.Client(timeout=120.0)
 atexit.register(_client.close)

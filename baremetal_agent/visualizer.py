@@ -10,7 +10,7 @@ from rich.markup import escape
 from rich.panel import Panel
 from rich.text import Text
 
-import config
+from baremetal_agent import config
 
 console = Console(highlight=False)
 

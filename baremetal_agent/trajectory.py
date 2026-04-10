@@ -11,6 +11,8 @@ import json
 import uuid
 from datetime import UTC, datetime
 
+from baremetal_agent import __version__
+
 
 def _extract_metrics(response: dict) -> dict:
     """Pull token usage from an API response into ATIF metrics."""
@@ -151,7 +153,7 @@ def history_to_atif(
         "session_id": session_id,
         "agent": {
             "name": "baremetal-agent",
-            "version": "0.1.0",
+            "version": __version__,
             "model_name": model,
         },
         "steps": steps,
