@@ -7,11 +7,16 @@ produces a final text response or the iteration limit is reached.
 
 import json
 import time
+from typing import NotRequired, TypedDict
 
 from baremetal_agent import client, config, tools, visualizer
 
-# Raw API responses stored for trajectory export
-api_responses: list[dict] = []
+
+class Message(TypedDict):
+    role: str
+    content: NotRequired[str | None]
+    tool_calls: NotRequired[list[dict]]
+    tool_call_id: NotRequired[str]
 
 
 def _confirm_tool(name: str, args: dict) -> bool:
@@ -29,10 +34,10 @@ def _confirm_tool(name: str, args: dict) -> bool:
     return approved
 
 
-def run_agent_turn(user_message: str, history: list[dict]) -> str:
+def run_agent_turn(user_message: str, history: list[Message], api_responses: list[dict]) -> str:
     """Run a single user turn through the agentic loop.
 
-    Appends to `history` in place. Returns the final assistant text response.
+    Appends to `history` and `api_responses` in place. Returns the final assistant text response.
     """
     # Mark rollback point before any mutations
     history_start = len(history)

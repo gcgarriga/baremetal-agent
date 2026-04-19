@@ -99,8 +99,9 @@ def run() -> None:
     """Run the interactive REPL."""
     _print_banner()
 
-    # Initialize conversation history with system prompt
+    # Initialize conversation history and response log — owned here, passed down
     history: list[dict] = [{"role": "system", "content": config.SYSTEM_PROMPT}]
+    api_responses: list[dict] = []
 
     while True:
         try:
@@ -134,7 +135,7 @@ def run() -> None:
         if cmd == "clear":
             history.clear()
             history.append({"role": "system", "content": config.SYSTEM_PROMPT})
-            agent.api_responses.clear()
+            api_responses.clear()
             print("\n  Conversation history cleared.\n")
             continue
 
@@ -143,7 +144,7 @@ def run() -> None:
             path = parts[1] if len(parts) > 1 else "trajectory.json"
             atif = trajectory.history_to_atif(
                 history,
-                agent.api_responses,
+                api_responses,
                 config.MODEL,
             )
             try:
@@ -174,7 +175,7 @@ def run() -> None:
 
         # Send to the agent
         print()
-        response = agent.run_agent_turn(user_input, history)
+        response = agent.run_agent_turn(user_input, history, api_responses)
         if config.VERBOSE:
             print("─" * 62)
             print(response)
