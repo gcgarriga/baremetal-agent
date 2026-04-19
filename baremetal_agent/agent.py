@@ -10,12 +10,13 @@ import time
 from typing import NotRequired, TypedDict
 
 from baremetal_agent import client, config, tools, visualizer
+from baremetal_agent.visualizer import ToolCallResult
 
 
 class Message(TypedDict):
     role: str
     content: NotRequired[str | None]
-    tool_calls: NotRequired[list[dict]]
+    tool_calls: NotRequired[list[dict[str, object]]]
     tool_call_id: NotRequired[str]
 
 
@@ -88,7 +89,7 @@ def run_agent_turn(user_message: str, history: list[Message], api_responses: lis
             history.append(assistant_msg)
 
             # Execute each tool call, collecting results for visualization
-            tool_calls_with_results = []
+            tool_calls_with_results: list[ToolCallResult] = []
             for tool_call in message["tool_calls"]:
                 call_id = tool_call["id"]
                 func = tool_call["function"]

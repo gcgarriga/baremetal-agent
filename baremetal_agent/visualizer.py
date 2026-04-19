@@ -1,9 +1,6 @@
-"""Live trajectory visualization using rich.
+"""Live trajectory visualization using rich."""
 
-Renders agent loop steps as they happen: tool call panels, response panels,
-error displays, and a trajectory summary footer. Used by agent.py in place
-of raw JSON dumps when config.VERBOSE is False.
-"""
+from typing import Any, TypedDict
 
 from rich.console import Console
 from rich.markup import escape
@@ -15,8 +12,15 @@ from baremetal_agent import config
 console = Console(highlight=False)
 
 
-def _fmt_args(args: dict) -> str:
-    """Format tool arguments as a compact one-liner."""
+class ToolCallResult(TypedDict):
+    name: str
+    args: dict[str, Any]
+    result: str
+    duration_ms: float
+    denied: bool
+
+
+def _fmt_args(args: dict[str, Any]) -> str:
     parts = []
     for k, v in args.items():
         if isinstance(v, str) and len(v) > 60:
@@ -26,7 +30,6 @@ def _fmt_args(args: dict) -> str:
 
 
 def _fmt_result_summary(result: str) -> str:
-    """Summarize a tool result: first 3 lines + truncation notice."""
     lines = result.splitlines()
     preview_lines = [escape(line) for line in lines[:3]]
     indented = "\n     ".join(preview_lines)
@@ -36,32 +39,23 @@ def _fmt_result_summary(result: str) -> str:
 
 
 def _fmt_ms(ms: float) -> str:
-    """Format milliseconds for display."""
     if ms >= 1000:
         return f"{ms / 1000:.1f}s"
     return f"{int(ms)}ms"
 
 
-def _fmt_tokens(metrics: dict) -> str:
-    """Format token count from API response metrics."""
+def _fmt_tokens(metrics: dict[str, Any]) -> str:
     prompt = metrics.get("prompt_tokens", 0)
     completion = metrics.get("completion_tokens", 0)
-    total = prompt + completion
-    return f"{total} tok"
+    return f"{prompt + completion} tok"
 
 
 def render_tool_call_step(
     iteration: int,
-    tool_calls_with_results: list[dict],
+    tool_calls_with_results: list[ToolCallResult],
     api_duration_ms: float,
-    metrics: dict,
+    metrics: dict[str, Any],
 ) -> None:
-    """Render a complete tool-call step panel.
-
-    tool_calls_with_results is a list of dicts:
-        {"name": str, "args": dict, "result": str, "duration_ms": float,
-         "confirmed": bool | None, "denied": bool}
-    """
     if config.VERBOSE:
         return
 
@@ -95,8 +89,7 @@ def render_tool_call_step(
     console.print(panel)
 
 
-def render_response(text: str, api_duration_ms: float, metrics: dict) -> None:
-    """Render the agent's final text response panel."""
+def render_response(text: str, api_duration_ms: float, metrics: dict[str, Any]) -> None:
     if config.VERBOSE:
         return
 
@@ -104,10 +97,8 @@ def render_response(text: str, api_duration_ms: float, metrics: dict) -> None:
     header.append("💬 Agent response", style="bold green")
     header.append(f"  {_fmt_ms(api_duration_ms)}  {_fmt_tokens(metrics)}", style="dim")
 
-    body = Text(text)
-
     panel = Panel(
-        body,
+        Text(text),
         title="[bold]Response[/bold]",
         title_align="left",
         subtitle=header,
@@ -119,7 +110,6 @@ def render_response(text: str, api_duration_ms: float, metrics: dict) -> None:
 
 
 def render_error(message: str) -> None:
-    """Render an error panel. Always shown (errors matter in both modes)."""
     if config.VERBOSE:
         print(f"\n❌ {message}\n")
         return
@@ -134,8 +124,7 @@ def render_error(message: str) -> None:
     console.print(panel)
 
 
-def render_confirmation(name: str, args: dict, approved: bool) -> None:
-    """Render a confirmation result (shown after user responds)."""
+def render_confirmation(name: str, args: dict[str, Any], approved: bool) -> None:
     if config.VERBOSE:
         return
 
@@ -143,12 +132,7 @@ def render_confirmation(name: str, args: dict, approved: bool) -> None:
     console.print(f"  ⚠️  {name}({_fmt_args(args)}) — {status}")
 
 
-def render_trajectory_summary(
-    iterations: int,
-    total_tokens: int,
-    total_ms: float,
-) -> None:
-    """Render the trajectory footer summary after a turn completes."""
+def render_trajectory_summary(iterations: int, total_tokens: int, total_ms: float) -> None:
     if config.VERBOSE:
         return
 
